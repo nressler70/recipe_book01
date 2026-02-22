@@ -1,0 +1,912 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My Recipe Collection</title>
+<link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Nunito:wght@300;400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #faf7f2;
+    --ink: #2b1d0e;
+    --warm: #c4622d;
+    --warm-light: #f0d5c0;
+    --muted: #8a7060;
+    --card-bg: #fff;
+    --border: #e8ddd2;
+    --tag-seafood: #2a6e8c;
+    --tag-poultry: #7a5c1e;
+    --tag-beef: #7a2020;
+    --tag-sides: #2a6b3a;
+    --tag-dessert: #8b3a8b;
+    --tag-drinks: #2a5a7a;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Nunito', sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    min-height: 100vh;
+  }
+
+  /* ===== TOP NAV ===== */
+  header {
+    background: var(--ink);
+    padding: 0 2.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky; top: 0; z-index: 200;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.25);
+    min-height: 60px;
+  }
+  .logo {
+    font-family: 'Libre Baskerville', serif;
+    color: #fff;
+    font-size: 1.25rem;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .logo span { color: var(--warm); font-style: italic; }
+  .nav-cats {
+    display: flex; gap: 0.25rem; flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+  .nav-cats button {
+    background: none; border: none;
+    color: rgba(255,255,255,0.65);
+    font-family: 'Nunito', sans-serif;
+    font-size: 0.78rem; font-weight: 600;
+    letter-spacing: 0.06em; text-transform: uppercase;
+    padding: 0.4rem 0.7rem; cursor: pointer;
+    border-radius: 3px; transition: all 0.2s;
+    white-space: nowrap;
+  }
+  .nav-cats button:hover, .nav-cats button.active {
+    background: var(--warm); color: #fff;
+  }
+
+  /* ===== HERO ===== */
+  .hero {
+    background: linear-gradient(135deg, #2b1d0e 0%, #4a2c12 60%, #2b1d0e 100%);
+    padding: 5rem 2rem 4rem;
+    text-align: center;
+    position: relative; overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute; inset: 0;
+    background-image: repeating-linear-gradient(
+      45deg,
+      transparent, transparent 40px,
+      rgba(196,98,45,0.04) 40px, rgba(196,98,45,0.04) 41px
+    );
+  }
+  .hero-label {
+    display: inline-block;
+    font-size: 0.7rem; letter-spacing: 0.35em; text-transform: uppercase;
+    color: var(--warm); background: rgba(196,98,45,0.15);
+    padding: 0.35rem 1rem; border-radius: 2px;
+    margin-bottom: 1.2rem; position: relative;
+  }
+  .hero h1 {
+    font-family: 'Libre Baskerville', serif;
+    color: #fff; font-size: clamp(2.5rem, 6vw, 4.5rem);
+    line-height: 1.1; position: relative;
+    margin-bottom: 1rem;
+  }
+  .hero h1 em { color: var(--warm); font-style: italic; }
+  .hero p {
+    color: rgba(255,255,255,0.5); font-size: 1rem;
+    font-weight: 300; position: relative;
+  }
+
+  /* ===== CATEGORY SECTIONS ===== */
+  .main-content { max-width: 1200px; margin: 0 auto; padding: 3rem 1.5rem 5rem; }
+
+  .category-section { margin-bottom: 4rem; }
+  .category-section.hidden { display: none; }
+
+  .cat-header {
+    display: flex; align-items: center; gap: 1rem;
+    margin-bottom: 1.5rem; padding-bottom: 0.8rem;
+    border-bottom: 2px solid var(--border);
+  }
+  .cat-icon { font-size: 1.8rem; }
+  .cat-title {
+    font-family: 'Libre Baskerville', serif;
+    font-size: 1.6rem; color: var(--ink);
+  }
+  .cat-count {
+    margin-left: auto;
+    font-size: 0.75rem; letter-spacing: 0.12em; text-transform: uppercase;
+    color: var(--muted); font-weight: 600;
+  }
+
+  /* ===== RECIPE CARDS ===== */
+  .recipe-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.2rem;
+  }
+  .recipe-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 1.4rem 1.5rem 1.2rem;
+    cursor: pointer;
+    transition: box-shadow 0.25s, transform 0.25s, border-color 0.25s;
+    position: relative;
+  }
+  .recipe-card:hover {
+    box-shadow: 0 8px 30px rgba(43,29,14,0.12);
+    transform: translateY(-3px);
+    border-color: var(--warm-light);
+  }
+  .recipe-card-tag {
+    display: inline-block;
+    font-size: 0.65rem; font-weight: 600; letter-spacing: 0.1em;
+    text-transform: uppercase; padding: 0.2rem 0.6rem;
+    border-radius: 2px; margin-bottom: 0.7rem; color: #fff;
+  }
+  .recipe-card h3 {
+    font-family: 'Libre Baskerville', serif;
+    font-size: 1.1rem; line-height: 1.35;
+    margin-bottom: 0.5rem;
+  }
+  .recipe-card .meta {
+    font-size: 0.78rem; color: var(--muted);
+    display: flex; gap: 1rem; flex-wrap: wrap;
+  }
+  .recipe-card .meta span { display: flex; align-items: center; gap: 0.3rem; }
+  .recipe-card .arrow {
+    position: absolute; bottom: 1.2rem; right: 1.5rem;
+    color: var(--warm); font-size: 1.1rem; opacity: 0;
+    transition: opacity 0.2s, transform 0.2s;
+  }
+  .recipe-card:hover .arrow { opacity: 1; transform: translateX(3px); }
+
+  /* ===== RECIPE DETAIL MODAL ===== */
+  .modal-backdrop {
+    display: none; position: fixed; inset: 0; z-index: 500;
+    background: rgba(20,12,5,0.7); backdrop-filter: blur(4px);
+    justify-content: center; align-items: flex-start;
+    padding: 2rem 1rem; overflow-y: auto;
+  }
+  .modal-backdrop.open { display: flex; }
+  .modal {
+    background: var(--bg); max-width: 780px; width: 100%;
+    border-radius: 8px; overflow: hidden;
+    box-shadow: 0 30px 80px rgba(0,0,0,0.4);
+    position: relative; animation: slideUp 0.3s ease;
+    margin: auto;
+  }
+  @keyframes slideUp {
+    from { transform: translateY(30px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+  .modal-header {
+    background: var(--ink); padding: 2rem 2.5rem 1.5rem;
+    position: relative;
+  }
+  .modal-tag {
+    display: inline-block;
+    font-size: 0.65rem; font-weight: 700; letter-spacing: 0.15em;
+    text-transform: uppercase; padding: 0.25rem 0.7rem;
+    border-radius: 2px; margin-bottom: 0.8rem; color: #fff;
+    opacity: 0.9;
+  }
+  .modal-title {
+    font-family: 'Libre Baskerville', serif;
+    color: #fff; font-size: clamp(1.5rem, 3vw, 2rem);
+    line-height: 1.2; margin-bottom: 0.5rem;
+  }
+  .modal-meta {
+    display: flex; gap: 1.5rem; flex-wrap: wrap;
+    font-size: 0.82rem; color: rgba(255,255,255,0.5);
+  }
+  .modal-close {
+    position: absolute; top: 1.2rem; right: 1.5rem;
+    background: rgba(255,255,255,0.1); border: none;
+    color: #fff; font-size: 1.3rem; width: 34px; height: 34px;
+    border-radius: 50%; cursor: pointer; transition: background 0.2s;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .modal-close:hover { background: var(--warm); }
+  .modal-body { padding: 2rem 2.5rem 2.5rem; }
+
+  .recipe-section-title {
+    font-family: 'Libre Baskerville', serif;
+    font-size: 1rem; color: var(--warm);
+    text-transform: uppercase; letter-spacing: 0.12em;
+    font-size: 0.8rem; font-weight: 700;
+    margin-bottom: 0.8rem; margin-top: 1.5rem;
+    padding-bottom: 0.4rem; border-bottom: 1px solid var(--border);
+  }
+  .recipe-section-title:first-child { margin-top: 0; }
+
+  .ingredient-list {
+    list-style: none; display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 0.35rem 1rem;
+  }
+  .ingredient-list li {
+    font-size: 0.9rem; color: var(--ink);
+    padding: 0.25rem 0 0.25rem 1rem;
+    position: relative; border-bottom: 1px dashed var(--border);
+  }
+  .ingredient-list li::before {
+    content: '·'; position: absolute; left: 0; color: var(--warm);
+    font-size: 1.2rem; line-height: 1;
+  }
+
+  .step-list { list-style: none; }
+  .step-list li {
+    display: flex; gap: 1rem; margin-bottom: 1rem;
+    font-size: 0.92rem; line-height: 1.65; color: #3a2a1a;
+  }
+  .step-num {
+    flex-shrink: 0; width: 26px; height: 26px;
+    background: var(--warm); color: #fff;
+    border-radius: 50%; display: flex; align-items: center;
+    justify-content: center; font-size: 0.75rem; font-weight: 700;
+    margin-top: 0.15rem;
+  }
+
+  .recipe-note {
+    background: var(--warm-light); border-left: 3px solid var(--warm);
+    padding: 0.8rem 1rem; border-radius: 0 4px 4px 0;
+    font-size: 0.88rem; color: #5a3010; font-style: italic;
+    margin-top: 1.5rem;
+  }
+
+  /* responsive */
+  @media (max-width: 640px) {
+    header { flex-direction: column; gap: 0.5rem; padding: 0.6rem 1rem; }
+    .nav-cats { justify-content: center; }
+    .modal-body, .modal-header { padding: 1.2rem 1.4rem; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo" onclick="filterCat('all')">My <span>Recipe</span> Collection</div>
+  <div class="nav-cats">
+    <button class="active" onclick="filterCat('all')">All</button>
+    <button onclick="filterCat('seafood')">🐟 Seafood</button>
+    <button onclick="filterCat('poultry')">🍗 Poultry</button>
+    <button onclick="filterCat('beef')">🥩 Beef &amp; Pork</button>
+    <button onclick="filterCat('sides')">🥔 Sides &amp; Veg</button>
+    <button onclick="filterCat('dessert')">🍰 Desserts</button>
+    <button onclick="filterCat('drinks')">🍷 Drinks</button>
+  </div>
+</header>
+
+<div class="hero">
+  <div class="hero-label">Family Favorites</div>
+  <h1>A Collection of <em>Cherished</em> Recipes</h1>
+  <p>13 recipes organized by category — click any card to view the full recipe</p>
+</div>
+
+<div class="main-content">
+
+  <!-- SEAFOOD -->
+  <div class="category-section" data-cat="seafood" id="cat-seafood">
+    <div class="cat-header">
+      <span class="cat-icon">🐟</span>
+      <h2 class="cat-title">Seafood</h2>
+      <span class="cat-count">3 recipes</span>
+    </div>
+    <div class="recipe-grid">
+
+      <div class="recipe-card" onclick="openRecipe('salmon-dill')">
+        <div class="recipe-card-tag" style="background:var(--tag-seafood)">Seafood</div>
+        <h3>Easy Baked Salmon with Lemon Dill Sauce</h3>
+        <div class="meta">
+          <span>⏱ 35 min</span><span>👥 4 servings</span><span>🔥 334 cal</span>
+        </div>
+        <span class="arrow">→</span>
+      </div>
+
+      <div class="recipe-card" onclick="openRecipe('maple-salmon')">
+        <div class="recipe-card-tag" style="background:var(--tag-seafood)">Seafood</div>
+        <h3>Maple-Glazed Salmon</h3>
+        <div class="meta">
+          <span>⏱ ~30 min</span><span>👥 4 servings</span><span>🔥 316 cal</span>
+        </div>
+        <span class="arrow">→</span>
+      </div>
+
+      <div class="recipe-card" onclick="openRecipe('jambalaya')">
+        <div class="recipe-card-tag" style="background:var(--tag-seafood)">Seafood</div>
+        <h3>Shrimp-and-Ham Jambalaya</h3>
+        <div class="meta">
+          <span>👥 8 servings</span>
+        </div>
+        <span class="arrow">→</span>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- POULTRY -->
+  <div class="category-section" data-cat="poultry" id="cat-poultry">
+    <div class="cat-header">
+      <span class="cat-icon">🍗</span>
+      <h2 class="cat-title">Poultry</h2>
+      <span class="cat-count">3 recipes</span>
+    </div>
+    <div class="recipe-grid">
+
+      <div class="recipe-card" onclick="openRecipe('orange-chicken')">
+        <div class="recipe-card-tag" style="background:var(--tag-poultry)">Poultry</div>
+        <h3>Asian-Style Orange Chicken</h3>
+        <div class="meta">
+          <span>⏱ 35 min</span><span>👥 4 servings</span><span>🔥 384 cal</span>
+        </div>
+        <span class="arrow">→</span>
+      </div>
+
+      <div class="recipe-card" onclick="openRecipe('riesling-chicken')">
+        <div class="recipe-card-tag" style="background:var(--tag-poultry)">Poultry</div>
+        <h3>Chicken with Riesling</h3>
+        <div class="meta">
+          <span>⏱ 1 hr 10 min</span><span>👥 4 servings</span>
+        </div>
+        <span class="arrow">→</span>
+      </div>
+
+      <div class="recipe-card" onclick="openRecipe('stuffing')">
+        <div class="recipe-card-tag" style="background:var(--tag-poultry)">Poultry</div>
+        <h3>Thanksgiving Stuffing</h3>
+        <div class="meta">
+          <span>🦃 Holiday classic</span>
+        </div>
+        <span class="arrow">→</span>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- BEEF & PORK -->
+  <div class="category-section" data-cat="beef" id="cat-beef">
+    <div class="cat-header">
+      <span class="cat-icon">🥩</span>
+      <h2 class="cat-title">Beef &amp; Pork</h2>
+      <span class="cat-count">2 recipes</span>
+    </div>
+    <div class="recipe-grid">
+
+      <div class="recipe-card" onclick="openRecipe('bourguignon')">
+        <div class="recipe-card-tag" style="background:var(--tag-beef)">Beef &amp; Pork</div>
+        <h3>Slow Cooker Beef Bourguignon</h3>
+        <div class="meta">
+          <span>⏱ 9 hrs 20 min</span><span>👥 6 servings</span><span>🔥 181 cal</span>
+        </div>
+        <span class="arrow">→</span>
+      </div>
+
+      <div class="recipe-card" onclick="openRecipe('meatloaf')">
+        <div class="recipe-card-tag" style="background:var(--tag-beef)">Beef &amp; Pork</div>
+        <h3>Mushroom-Stuffed Meatloaf</h3>
+        <div class="meta">
+          <span>⏱ ~1 hr 20 min</span><span>👥 6–8 servings</span>
+        </div>
+        <span class="arrow">→</span>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- SIDES & VEGETABLES -->
+  <div class="category-section" data-cat="sides" id="cat-sides">
+    <div class="cat-header">
+      <span class="cat-icon">🥔</span>
+      <h2 class="cat-title">Sides &amp; Vegetables</h2>
+      <span class="cat-count">2 recipes</span>
+    </div>
+    <div class="recipe-grid">
+
+      <div class="recipe-card" onclick="openRecipe('cheese-potatoes')">
+        <div class="recipe-card-tag" style="background:var(--tag-sides)">Sides &amp; Veg</div>
+        <h3>Scalloped Potatoes Baked in Cream <em style="font-size:0.8em;font-style:italic">(Julia Child)</em></h3>
+        <div class="meta">
+          <span>⏱ ~2 hrs</span><span>👥 6 servings</span>
+        </div>
+        <span class="arrow">→</span>
+      </div>
+
+      <div class="recipe-card" onclick="openRecipe('beets')">
+        <div class="recipe-card-tag" style="background:var(--tag-sides)">Sides &amp; Veg</div>
+        <h3>Grandma's Harvard Beets</h3>
+        <div class="meta">
+          <span>⏱ 40 min</span><span>👥 6 servings</span><span>🔥 185 cal</span>
+        </div>
+        <span class="arrow">→</span>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- DESSERTS -->
+  <div class="category-section" data-cat="dessert" id="cat-dessert">
+    <div class="cat-header">
+      <span class="cat-icon">🍰</span>
+      <h2 class="cat-title">Desserts &amp; Baking</h2>
+      <span class="cat-count">2 recipes</span>
+    </div>
+    <div class="recipe-grid">
+
+      <div class="recipe-card" onclick="openRecipe('apple-pie')">
+        <div class="recipe-card-tag" style="background:var(--tag-dessert)">Dessert</div>
+        <h3>Perfect Apple Pie</h3>
+        <div class="meta">
+          <span>⏱ 3 hrs 45 min</span><span>🥧 One 9-inch pie</span>
+        </div>
+        <span class="arrow">→</span>
+      </div>
+
+      <div class="recipe-card" onclick="openRecipe('cookies')">
+        <div class="recipe-card-tag" style="background:var(--tag-dessert)">Dessert</div>
+        <h3>Thick &amp; Chewy Chocolate Chip Cookies</h3>
+        <div class="meta">
+          <span>⏱ ~30 min</span><span>🍪 16 large cookies</span>
+        </div>
+        <span class="arrow">→</span>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- DRINKS -->
+  <div class="category-section" data-cat="drinks" id="cat-drinks">
+    <div class="cat-header">
+      <span class="cat-icon">🍷</span>
+      <h2 class="cat-title">Drinks</h2>
+      <span class="cat-count">1 recipe</span>
+    </div>
+    <div class="recipe-grid">
+
+      <div class="recipe-card" onclick="openRecipe('sangria')">
+        <div class="recipe-card-tag" style="background:var(--tag-drinks)">Drinks</div>
+        <h3>Sangria</h3>
+        <div class="meta">
+          <span>⏱ 24–96 hrs chill</span><span>🍷 1 gallon</span>
+        </div>
+        <span class="arrow">→</span>
+      </div>
+
+    </div>
+  </div>
+
+</div><!-- end main-content -->
+
+<!-- ===== MODAL ===== -->
+<div class="modal-backdrop" id="modal-backdrop" onclick="closeModal(event)">
+  <div class="modal" id="modal">
+    <div class="modal-header">
+      <div class="modal-tag" id="m-tag"></div>
+      <h2 class="modal-title" id="m-title"></h2>
+      <div class="modal-meta" id="m-meta"></div>
+      <button class="modal-close" onclick="closeModalBtn()">✕</button>
+    </div>
+    <div class="modal-body" id="m-body"></div>
+  </div>
+</div>
+
+<script>
+const RECIPES = {
+
+  'salmon-dill': {
+    title: 'Easy Baked Salmon with Lemon Dill Sauce',
+    tag: 'Seafood', tagColor: 'var(--tag-seafood)',
+    meta: '⏱ 35 min &nbsp;|&nbsp; 👥 4 servings &nbsp;|&nbsp; 🔥 334 cal',
+    ingredients: [
+      '4 (6 oz) salmon filets',
+      '1 tbsp olive oil',
+      'Salt and pepper to taste',
+      'Lemon wedges for garnish',
+      '— Lemon Dill Sauce —',
+      '1/3 cup Greek yogurt',
+      '2 tbsp mayonnaise',
+      '1.5 tbsp dill (fresh or freeze-dried)',
+      '2 tbsp lemon juice',
+      '1 tsp lemon zest',
+      '1 tsp granulated garlic',
+      'Salt and pepper to taste',
+    ],
+    steps: [
+      'Preheat oven to 400°F.',
+      'Place salmon on a foil-lined baking tray. Drizzle top with olive oil, salt and pepper.',
+      'Bake for 12–16 minutes depending on thickness. Remove from oven when internal temp reaches about 135°F and let rest until it reaches 145°F.',
+      'While salmon bakes, mix together all dill sauce ingredients and set aside.',
+      'Spoon dill sauce over cooked salmon. Garnish with lemon wedge and serve.',
+    ],
+    note: 'The best way to guarantee perfect, flaky salmon: take it out at 135°F and let it finish cooking on the counter to 145°F.',
+  },
+
+  'maple-salmon': {
+    title: 'Maple-Glazed Salmon',
+    tag: 'Seafood', tagColor: 'var(--tag-seafood)',
+    meta: '⏱ ~30 min &nbsp;|&nbsp; 👥 4 servings &nbsp;|&nbsp; 🔥 316 cal',
+    ingredients: [
+      '4 (6 oz) salmon fillets, ~1 inch thick',
+      '2 tbsp maple syrup',
+      '1½ tbsp apple juice',
+      '1½ tbsp fresh lemon juice',
+      '2 tsp hoisin sauce',
+      '1½ tsp grated fresh ginger',
+      '1½ tsp country-style Dijon mustard',
+      '¼ tsp five-spice powder',
+      'Cooking spray',
+    ],
+    steps: [
+      'Preheat broiler.',
+      'Combine the first 7 ingredients (maple syrup through five-spice powder) in a large zip-top plastic bag. Add fillets, seal, and marinate in refrigerator for 15 minutes.',
+      'Remove fillets from bag, reserving marinade. Place fillets skin-side down on a broiler rack coated with cooking spray.',
+      'Broil 12 minutes or until fish flakes easily when tested with a fork, basting occasionally with reserved marinade.',
+    ],
+    note: 'Look for hoisin sauce and five-spice powder in the Asian food sections of large supermarkets.',
+  },
+
+  'jambalaya': {
+    title: 'Shrimp-and-Ham Jambalaya',
+    tag: 'Seafood', tagColor: 'var(--tag-seafood)',
+    meta: '👥 8 servings',
+    ingredients: [
+      '2 cups water',
+      '1 tsp salt',
+      '1 cup short-grain white rice',
+      '2 lbs medium raw shrimp',
+      '6 tbsp butter',
+      '1½ cups finely chopped onions',
+      '2 tbsp finely chopped garlic',
+      '1 (16 oz) can Italian plum tomatoes, chopped',
+      '3 tbsp tomato paste',
+      '½ cup chopped celery',
+      '¼ cup finely chopped green pepper',
+      '1 tbsp finely chopped parsley',
+      '¾ tsp powdered cloves',
+      '½ tsp dried thyme',
+      '½ tsp ground red hot pepper',
+      '¼ tsp freshly ground black pepper',
+      '1 tsp salt',
+      '1 lb lean smoked ham, cut into ½-inch cubes',
+    ],
+    steps: [
+      'Place water, salt, and rice in a medium saucepan. Bring to a boil, then lower heat, cover, and simmer for 20 minutes without stirring, or until rice has absorbed liquid. Fluff with a fork and set aside.',
+      'Cook the shrimp as directed; shell and set aside.',
+      'Melt butter over moderate heat in a heavy casserole. Add onions and garlic and cook about 5 minutes until soft but not brown.',
+      'Add tomatoes and tomato paste and stir over moderate heat for 5 minutes. Add celery, green pepper, parsley, cloves, thyme, red pepper, black pepper, and salt. Cook uncovered over medium heat until vegetables are tender and the mixture is thick enough to hold its shape lightly in the spoon.',
+      'Add the ham and cook for 5 minutes, stirring frequently. Stir in the shrimp and, when heated, add the rice. Stir over moderate heat until the mixture is hot. Taste for seasoning and serve.',
+    ],
+  },
+
+  'orange-chicken': {
+    title: 'Asian-Style Orange Chicken',
+    tag: 'Poultry', tagColor: 'var(--tag-poultry)',
+    meta: '⏱ 35 min active &nbsp;|&nbsp; 👥 4 servings &nbsp;|&nbsp; 🔥 384 cal',
+    ingredients: [
+      '2 tbsp soy sauce',
+      '2 tbsp brown sugar',
+      '2 tbsp thawed orange juice concentrate',
+      '2 garlic cloves, minced',
+      '1 tsp finely grated orange zest',
+      '1 tsp minced fresh ginger',
+      '1 tsp kosher salt',
+      '½ tsp freshly ground pepper',
+      'Four ½-pound bone-in chicken breast halves, with skin',
+    ],
+    steps: [
+      'Preheat the oven to 500°.',
+      'In a medium bowl, combine the soy sauce, brown sugar, orange juice concentrate, garlic, orange zest, ginger, salt, and pepper. Add the chicken breasts and turn to coat. Transfer the chicken to a baking dish, skin side up.',
+      'Roast the chicken in the center of the oven for 25 minutes, basting with the sauce 4 times, until the chicken is just cooked through and nicely glazed.',
+      'Turn on the broiler and broil the chicken until browned, about 2 minutes.',
+    ],
+  },
+
+  'riesling-chicken': {
+    title: 'Chicken with Riesling',
+    tag: 'Poultry', tagColor: 'var(--tag-poultry)',
+    meta: '⏱ 1 hr 10 min &nbsp;|&nbsp; 👥 4 servings',
+    ingredients: [
+      '5 tbsp unsalted butter',
+      'One 3½-lb chicken, quartered',
+      'Salt and freshly ground pepper',
+      '1 large shallot, minced',
+      '2 tbsp Cognac',
+      '1 cup dry Riesling',
+      '6 oz white mushrooms, sliced ¼ inch thick',
+      '1 tbsp all-purpose flour',
+      '⅓ cup heavy cream',
+    ],
+    steps: [
+      'Melt 2 tbsp butter in a large skillet. Add the chicken, season with salt and pepper and cook over moderate heat until slightly browned, about 4 minutes per side. Add the shallot and cook, stirring, for 1 minute.',
+      'Add the Cognac and carefully ignite it with a long match. When flames subside, add the Riesling, cover, and simmer over low heat until breasts are just cooked, about 25 minutes. Transfer breasts to a plate. Cover and simmer the legs until cooked through, about 10 minutes more. Transfer to the plate.',
+      'Meanwhile, melt 2 tbsp butter in a medium skillet. Add the mushrooms, season with salt and pepper and cook over low heat until liquid evaporates, about 7 minutes. Increase heat to moderate and cook, stirring, until browned, about 3 minutes.',
+      'In a bowl, blend the flour with remaining 1 tbsp butter. Stir the cream into the large skillet; bring to a simmer. Gradually whisk the flour paste into the cooking liquid and simmer, whisking, until no floury taste remains, 3 minutes. Season with salt and pepper.',
+      'Return the chicken to the skillet, add the mushrooms, and briefly reheat. Serve with noodles, spaetzle, rice, or boiled potatoes.',
+    ],
+    note: 'Serve with a complex Riesling — the wine in the sauce will echo the glass.',
+  },
+
+  'stuffing': {
+    title: 'Thanksgiving Stuffing',
+    tag: 'Poultry', tagColor: 'var(--tag-poultry)',
+    meta: '🦃 Holiday classic',
+    ingredients: [
+      '1 (16 oz) pack cut mushrooms',
+      '2 celery sticks, chopped',
+      '2 small–medium onions, chopped',
+      '3 or more cloves of garlic',
+      '1 tube Jimmy Dean sausage',
+      'Ground turkey giblets',
+      'Parsley — to taste',
+      'Fresh basil — to taste',
+      'Fresh thyme — to taste',
+      '1 tsp salt',
+      '½ tsp black pepper',
+      '1 loaf sourdough bread, torn into small pieces',
+      '1 stick butter',
+      '1 can chicken broth',
+      '½ cup water',
+    ],
+    steps: [
+      'Fry sausage in a cast iron skillet and put into a cast iron Dutch oven — add broth and water.',
+      'Fry remaining ingredients (except bread) in 1 tbsp butter until brown. Drain fried ingredients and combine with sausage mixture.',
+      'Add bread pieces (breadcrumbs). Cover and simmer over medium-low heat for 5–10 minutes.',
+    ],
+  },
+
+  'bourguignon': {
+    title: 'Slow Cooker Beef Bourguignon',
+    tag: 'Beef & Pork', tagColor: 'var(--tag-beef)',
+    meta: '⏱ 9 hrs 20 min &nbsp;|&nbsp; 👥 6 servings &nbsp;|&nbsp; 🔥 181 cal',
+    ingredients: [
+      '5 slices bacon, finely chopped',
+      '3 lbs boneless beef chuck, cut in 1-inch cubes',
+      '1 cup red cooking wine',
+      '2 cups chicken broth',
+      '½ cup tomato sauce',
+      '¼ cup soy sauce',
+      '¼ cup flour',
+      '3 garlic cloves, finely chopped',
+      '2 tbsp thyme, finely chopped',
+      '5 medium carrots, sliced',
+      '1 lb baby potatoes',
+      '8 oz fresh mushrooms, sliced',
+      'Fresh chopped parsley for garnish',
+    ],
+    steps: [
+      'In a large skillet, cook bacon over medium-high heat until crisp. Put bacon in slow cooker.',
+      'Salt and pepper the beef, add to the skillet and sear on each side for 2–3 minutes. Transfer beef to the slow cooker.',
+      'Add the red wine to the skillet, scraping down the brown bits. Allow it to simmer and reduce, then slowly add chicken broth, tomato sauce, and soy sauce. Slowly whisk in the flour. Add the sauce to the slow cooker.',
+      'Add garlic, thyme, carrots, potatoes, and mushrooms to the slow cooker. Give it a good stir and cook on low until beef is tender, 8–10 hours, or on high for 6 hours.',
+      'Garnish with fresh parsley and serve with mashed potatoes if desired.',
+    ],
+  },
+
+  'meatloaf': {
+    title: 'Mushroom-Stuffed Meatloaf',
+    tag: 'Beef & Pork', tagColor: 'var(--tag-beef)',
+    meta: '⏱ ~1 hr 20 min &nbsp;|&nbsp; 👥 6–8 servings',
+    ingredients: [
+      '2 lbs ground beef',
+      '¾ lb mushrooms, chopped',
+      '1 medium onion, finely chopped',
+      '2 tbsp butter or margarine',
+      '1 tsp lemon juice',
+      '2 cups soft bread crumbs (divided)',
+      '½ tsp garlic salt',
+      '¼ tsp dried thyme',
+      '¼ cup chopped parsley',
+      '2 eggs',
+      '¼ cup catsup',
+      '2 tsp prepared mustard',
+      '1 tsp Worcestershire sauce',
+      '1½ tsp salt',
+    ],
+    steps: [
+      'Preheat oven to 350°F. Heat butter in a large frying pan. Cook chopped mushrooms with onion until lightly browned. Remove from heat and lightly mix in lemon juice, then ½ cup of bread crumbs, garlic salt, thyme, and parsley.',
+      'Beat eggs with catsup, mustard, Worcestershire sauce, and salt. Lightly mix in remaining bread crumbs and the ground beef.',
+      'Pat half the ground beef mixture into a 9-by-5-inch loaf pan. Cover with mushroom stuffing. Top with remaining meat mixture.',
+      'Bake uncovered until browned, about 1 hour and 15 minutes. Let stand a few minutes before removing from pan to slice.',
+    ],
+  },
+
+  'cheese-potatoes': {
+    title: 'Scalloped Potatoes Baked in Cream',
+    tag: 'Sides & Veg', tagColor: 'var(--tag-sides)',
+    meta: '⏱ ~2 hrs &nbsp;|&nbsp; 👥 6 servings &nbsp;|&nbsp; Julia Child',
+    ingredients: [
+      '1½–2 cups each heavy cream and half-and-half cream',
+      '1 large clove garlic, puréed',
+      'Salt and freshly ground white pepper',
+      '1 imported bay leaf',
+      '2 to 2½ lbs "boiling" potatoes (6–7 cups sliced)',
+      '3–4 tbsp grated Swiss cheese',
+    ],
+    steps: [
+      'Pour 1½ cups each heavy and half-and-half cream into the saucepan. Stir in the garlic, ½ tsp salt, several grinds of pepper, and the bay leaf.',
+      'Slice the potatoes evenly ⅛ inch thick, dropping them as sliced into the cream. When all are in, add more cream if necessary to cover the potatoes by ½ inch.',
+      'Preliminary cooking — 1 to 1½ hours: Bring to below the simmer and maintain at just below the simmer for an hour or more, until potatoes are perfectly tender. Check frequently to be sure they are not bubbling (this can cause the cream to curdle) and that potatoes are not sticking to the bottom of the pan.',
+      'When tender, correct seasoning and turn into the buttered baking and serving dish; spread on the grated cheese.',
+      'Final baking — 20 minutes at 425°F: Set in the upper middle level of the preheated oven and bake until bubbling hot and lightly browned on top. Do not overcook or potatoes will be dry rather than lush and creamy.',
+    ],
+    note: 'May be prepared to the baking step several hours in advance. Cover when cool and refrigerate.',
+  },
+
+  'beets': {
+    title: "Grandma's Harvard Beets",
+    tag: 'Sides & Veg', tagColor: 'var(--tag-sides)',
+    meta: '⏱ 40 min &nbsp;|&nbsp; 👥 6 servings &nbsp;|&nbsp; 🔥 185 cal',
+    ingredients: [
+      '¾ cup white sugar',
+      '4 tsp cornstarch',
+      '⅓ cup white vinegar',
+      '⅓ cup water',
+      '2 (15 oz) cans sliced beets, drained',
+      '3 tbsp butter',
+      '¼ tsp salt',
+      '¼ tsp pepper',
+    ],
+    steps: [
+      'Combine sugar, cornstarch, vinegar, and water in a saucepan. Bring to a boil, and cook for 5 minutes.',
+      'Add beets to the liquid, and simmer for 30 minutes over low heat.',
+      'Stir in butter, salt, and pepper, and remove from the heat. Serve warm or chilled.',
+    ],
+    note: 'This recipe came from Grandma — none are as flavorful as hers!',
+  },
+
+  'apple-pie': {
+    title: 'Perfect Apple Pie',
+    tag: 'Dessert', tagColor: 'var(--tag-dessert)',
+    meta: '⏱ 3 hrs 45 min &nbsp;|&nbsp; 🥧 One 9-inch pie',
+    ingredients: [
+      '— Crust —',
+      '2½ cups plus 1½ tbsp all-purpose flour',
+      '1 tsp salt',
+      '2 tsp granulated sugar (divided)',
+      '2 sticks (8 oz) cold unsalted butter, cut into tablespoons',
+      '½ cup cold solid vegetable shortening',
+      'Ice water',
+      '— Filling —',
+      '4½ lbs Golden Delicious apples',
+      'Juice of 1 large lemon',
+      '1 cup packed dark brown sugar',
+      '¼ tsp cinnamon',
+      '2 tsp milk',
+    ],
+    steps: [
+      'MAKE THE DOUGH: In a food processor, pulse 2½ cups flour with salt and 1 tsp sugar. Add 8 tbsp butter and the shortening; pulse until mixture resembles small peas. Add ⅓ cup ice water and pulse until evenly moistened. Squeeze mixture — if it crumbles, add 1 tbsp ice water and pulse again.',
+      'Turn dough onto a work surface and press with the heel of your hand, then gather into a ball. Divide in half and form into disks. Refrigerate at least 30 minutes or up to 2 days.',
+      'On a lightly floured surface, roll 1 disk into a 13-inch round, ⅛ inch thick. Fit into a 9-inch glass pie plate and trim overhang to ½ inch. Refrigerate. Roll second disk into a 12-inch round and refrigerate on a parchment-lined baking sheet.',
+      'MAKE THE FILLING: Peel, halve, and core the apples, then cut into ¾-inch wedges and toss with lemon juice. In a 12-inch skillet, melt the remaining 8 tbsp butter over low heat; stir in brown sugar. Add apples and turn to coat. Increase heat to high and cook, turning occasionally, until most of the wedges are tender but not mushy, 15 minutes.',
+      'Scoop apples onto a rimmed baking sheet. Sprinkle the remaining 1½ tbsp flour and cinnamon over them and toss until flour disappears. Let apples cool to room temperature, 40 minutes.',
+      'Preheat oven to 450°. Arrange apples in the pie shell; drizzle juices over them. Moisten the pie rim with a wet pastry brush. Center the top crust over the apples and press the rim to seal. Using scissors, trim to a ½-inch overhang, fold under and crimp.',
+      'Dissolve remaining 1 tsp sugar in the milk and lightly brush the top of the pie. Pierce several holes in the top with a fork.',
+      'Bake 25 minutes or until crust is golden brown (cover the rim with foil if it browns too quickly). Reduce heat to 375° and bake 20 minutes longer, or until you can hear the apple filling bubbling.',
+      'Transfer to a wire rack and let cool for at least 1 hour before cutting.',
+    ],
+  },
+
+  'cookies': {
+    title: 'Thick & Chewy Chocolate Chip Cookies',
+    tag: 'Dessert', tagColor: 'var(--tag-dessert)',
+    meta: '⏱ ~30 min &nbsp;|&nbsp; 🍪 About 16 large cookies',
+    ingredients: [
+      '1¾ cups (8¾ oz) unbleached all-purpose flour',
+      '½ tsp baking soda',
+      '14 tbsp (1¾ sticks) unsalted butter',
+      '¾ cup packed (5¼ oz) dark brown sugar',
+      '½ cup (3½ oz) granulated sugar',
+      '1 tsp table salt',
+      '2 tsp vanilla extract',
+      '1 large egg',
+      '1 large egg yolk',
+      '1¼ cups (7½ oz) semisweet chocolate chips or chunks',
+      '¾ cup chopped pecans or walnuts, toasted (optional)',
+    ],
+    steps: [
+      'Adjust oven rack to middle position and heat oven to 375°. Line two large baking sheets with parchment paper.',
+      'Whisk the flour and baking soda together in a medium bowl; set aside.',
+      'Heat 10 tbsp of the butter in a 10-inch skillet over medium-high heat until melted, about 2 minutes. Continue cooking, swirling the pan constantly until butter is dark golden brown and has a nutty aroma, 1–3 minutes. Transfer the browned butter to a large heatproof bowl. Add the remaining 4 tbsp butter and stir until completely melted.',
+      'Add the sugars, salt, and vanilla to the melted butter; whisk until fully incorporated. Add the egg and egg yolk; whisk until smooth with no lumps, about 30 seconds. Let stand 3 minutes, then whisk 30 seconds. Repeat resting and whisking two more times until the mixture is thick, smooth, and shiny.',
+      'Using a rubber spatula, stir in the flour mixture until just combined. Stir in the chocolate chips and nuts (if using), giving the dough a final stir to ensure no flour pockets remain.',
+      'Divide dough into 16 portions (about 3 tbsp each). Place on prepared baking sheets, spacing about 2 inches apart.',
+      'Bake one sheet at a time, rotating the sheet halfway through, until cookies are golden brown and still puffy but edges have begun to set but centers are still soft, 10–14 minutes. Transfer to a wire rack and cool to room temperature.',
+    ],
+    note: 'Avoid a nonstick skillet to brown the butter — the dark coating makes it difficult to gauge when butter is browned. Use fresh, moist brown sugar for chewier cookies.',
+  },
+
+  'sangria': {
+    title: 'Sangria',
+    tag: 'Drinks', tagColor: 'var(--tag-drinks)',
+    meta: '⏱ 24–96 hrs refrigeration &nbsp;|&nbsp; 🍷 1 gallon',
+    ingredients: [
+      '2 cups triple sec',
+      '2 cups peach schnapps',
+      '1 bottle Manischewitz wine',
+      '2 cups apple juice',
+      '2 pears',
+      '2 small apples',
+      '1 lemon',
+      '3 blood oranges or regular oranges',
+      '4 cinnamon sticks',
+      '1 tbsp whole cloves',
+    ],
+    steps: [
+      'Cut up all the fruit and put it in a 1-gallon pitcher.',
+      'Add the cinnamon sticks and cloves.',
+      'Pour in the entire bottle of wine, then add the other liquids (triple sec, peach schnapps, apple juice).',
+      'Cover and refrigerate for at least 24 hours, preferably 2–4 days.',
+      'After sangria has sat, drain it through a colander into a bowl to remove the fruit and spices. Transfer the drained sangria back to the 1-gallon pitcher and enjoy!',
+    ],
+    note: 'You can adjust the ingredients to your tastes. The longer it sits, the more the flavors meld.',
+  },
+
+};
+
+function openRecipe(id) {
+  const r = RECIPES[id];
+  if (!r) return;
+  document.getElementById('m-tag').textContent = r.tag;
+  document.getElementById('m-tag').style.background = r.tagColor;
+  document.getElementById('m-title').textContent = r.title;
+  document.getElementById('m-meta').innerHTML = r.meta;
+
+  let html = '';
+
+  html += '<div class="recipe-section-title">Ingredients</div>';
+  html += '<ul class="ingredient-list">';
+  r.ingredients.forEach(i => {
+    if (i.startsWith('—')) {
+      html += `</ul><div class="recipe-section-title">${i}</div><ul class="ingredient-list">`;
+    } else {
+      html += `<li>${i}</li>`;
+    }
+  });
+  html += '</ul>';
+
+  html += '<div class="recipe-section-title">Instructions</div>';
+  html += '<ol class="step-list">';
+  r.steps.forEach((s, i) => {
+    html += `<li><span class="step-num">${i + 1}</span><span>${s}</span></li>`;
+  });
+  html += '</ol>';
+
+  if (r.note) {
+    html += `<div class="recipe-note">📝 ${r.note}</div>`;
+  }
+
+  document.getElementById('m-body').innerHTML = html;
+  document.getElementById('modal-backdrop').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeModal(e) {
+  if (e.target === document.getElementById('modal-backdrop')) closeModalBtn();
+}
+function closeModalBtn() {
+  document.getElementById('modal-backdrop').classList.remove('open');
+  document.body.style.overflow = '';
+}
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModalBtn(); });
+
+function filterCat(cat) {
+  document.querySelectorAll('.nav-cats button').forEach(b => b.classList.remove('active'));
+  event.currentTarget.classList.add('active');
+  document.querySelectorAll('.category-section').forEach(sec => {
+    if (cat === 'all' || sec.dataset.cat === cat) {
+      sec.classList.remove('hidden');
+    } else {
+      sec.classList.add('hidden');
+    }
+  });
+}
+</script>
+</body>
+</html>
